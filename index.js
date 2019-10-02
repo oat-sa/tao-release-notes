@@ -47,8 +47,9 @@ async function releaseExtension() {
         await release.selectTaoInstance();
         await release.selectExtension();
         await release.initialiseGithubClient();
-        await release.selectLastVersion();
         await release.extractPullRequests();
+        await release.selectLastVersion();
+        await release.filterPullRequests();
         await release.extractReleaseNotes();
         await release.writeChangeLog();
 
