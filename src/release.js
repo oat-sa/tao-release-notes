@@ -38,9 +38,10 @@ const taoInstanceFactory = require('./taoInstance.js');
  * Get the taoExtensionRelease
  *
  * @param {String} wwwUser - name of the www user
+ * @param {Array} extensionsSelected - array of extensions to parse
  * @return {Object} - instance of taoExtensionRelease
  */
-module.exports = function taoExtensionReleaseFactory(wwwUser) {
+module.exports = function taoExtensionReleaseFactory(wwwUser, extensionsSelected) {
     let data = {};
     let githubClient;
     let taoInstance;
@@ -84,46 +85,74 @@ module.exports = function taoExtensionReleaseFactory(wwwUser) {
         },
 
         /**
-         * Select and initialise the extension
+         * Shows all exrtensions to parse
          */
-        async selectExtension() {
-            const availableExtensions = await taoInstance.getExtensions();
-
-            const { extension } = await inquirer.prompt({
-                type: 'list',
-                name: 'extension',
-                message: 'Which extension you want to release ? ',
-                pageSize: 12,
-                choices: availableExtensions,
-                default: data.extension && data.extension.name,
+        async showExtensions() {
+            const { extensionsOk } = await inquirer.prompt({
+                type: 'confirm',
+                name: 'extensionsOk',
+                message: `Extensions selected \n     - ${extensionsSelected.join('\n     - ')}\n\nCan we proceed ?`
             });
 
-            data.extension = {
-                name: extension,
-                path: `${data.taoRoot}/${extension}`,
-            };
-
-            await config.write(data);
+            if (!extensionsOk) {
+                log.exit();
+            }
         },
 
         /**
-         * Select and initialise the version
+         * Select and initialise the extension
          */
-        async selectLastVersion() {
-            const lastPrData = await githubClient.getLastPullRequest();
+        async selectExtension(extensionName = null) {
+            if (!extensionName) {
 
-            const { lastVersionUsed } = await inquirer.prompt({
-                type: 'input',
-                name: 'lastVersionUsed',
-                message: 'From which starting version you want to pull release notes: ',
-                default: `${semver.valid(semver.coerce(lastPrData.search.nodes[0].title))}`
-            });
+                const availableExtensions = await taoInstance.getExtensions();
 
-            if (!lastVersionUsed) {
-                log.exit(`Please provide a correct version for extension '${data.extension}'.`);
+                const { extension } = await inquirer.prompt({
+                    type: 'list',
+                    name: 'extension',
+                    message: 'Which extension you want to release ? ',
+                    pageSize: 12,
+                    choices: availableExtensions,
+                    default: data.extension && data.extension.name,
+                });
+
+                extensionName = extension;
             }
 
-            data.extension.lastVersionUsed = semver.valid(semver.coerce(lastVersionUsed));
+            data.extension = {
+                name: extensionName,
+                path: `${data.taoRoot}/${extensionName}`,
+            };
+
+            await config.write(data);
+            log.done(`Extension selected: ${ data.extension.name}`);
+        },
+
+        /**
+          *
+          * @param {Object} options
+          */
+        async selectLastVersion(options = null) {
+            const lastValidPr = this.findLastValidPullRequest(data.pullRequests);
+            let lastVersion = `${semver.valid(semver.coerce(lastValidPr.title))}`;
+
+            if (!options || !options.autoSelectLastVersion) {
+                const { lastVersionUsed } = await inquirer.prompt({
+                    type: 'input',
+                    name: 'lastVersionUsed',
+                    message: 'From which starting version you want to pull release notes: ',
+                    default: lastVersion
+                });
+
+                if (!lastVersionUsed) {
+                    log.exit(`Please provide a correct version for extension '${data.extension}'.`);
+                }
+
+                lastVersion = lastVersionUsed;
+            }
+
+            data.extension.lastVersionUsed = lastVersion;
+            log.done(`Version selected: ${ data.extension.lastVersionUsed}`);
         },
 
         /**
@@ -158,18 +187,31 @@ module.exports = function taoExtensionReleaseFactory(wwwUser) {
         async extractPullRequests() {
             log.doing('Extracting pull requests');
             const pullRequestsData = await githubClient.searchLastPullRequests();
-
             if (pullRequestsData && pullRequestsData.search && pullRequestsData.search.nodes && pullRequestsData.search.nodes.length){
-                log.doing('Filtering pull requests');
-                data.validPullRequests = pullRequestsData.search.nodes.filter((pr) => {
+                data.pullRequests = pullRequestsData.search.nodes;
+            } else {
+                log.exit('No PR data for this extension', pullRequestsData);
+            }
+        },
+
+        async filterPullRequests() {
+            log.doing('Filtering pull requests');
+            if (data.pullRequests){
+                data.filteredPullRequests = data.pullRequests.filter((pr) => {
                     const version = semver.valid(semver.coerce(pr.title));
                     if (version) {
                         return semver.gte(version, data.extension.lastVersionUsed);
                     }
                 });
 
+                if (data.filteredPullRequests.length){
+                    data.pullRequests = []; // invalidate pull request once we filter all
+                } else {
+                    log.exit('No valid versions for PR data', data.pullRequests);
+                }
+
             } else {
-                log.exit('No PR data for this extension', pullRequestsData);
+                log.exit('No PR data', data.pullRequests);
             }
         },
 
@@ -178,13 +220,20 @@ module.exports = function taoExtensionReleaseFactory(wwwUser) {
          */
         async extractReleaseNotes() {
             log.doing('Extracting release notes');
+            let selectPullRequests;
+            data.releaseNotes = [];
 
-            if (data.validPullRequests.length) {
-                data.releaseNotes = [];
-                data.releaseNotes.push(...(await this.getReleaseNotesFromPullRquest(data.validPullRequests)));
+            if (data.filteredPullRequests && data.filteredPullRequests.length) {
+                selectPullRequests = data.filteredPullRequests; // parse filtered pull requests
+
+            } else if (data.pullRequests && data.pullRequests.length) {
+                selectPullRequests = data.pullRequests; // parse unfiltered pull requests
+
             } else {
                 log.exit('No valid PR found.');
             }
+
+            data.releaseNotes.push(...(await this.getReleaseNotesFromPullRequest(selectPullRequests)));
         },
 
         /**
@@ -215,7 +264,7 @@ module.exports = function taoExtensionReleaseFactory(wwwUser) {
          * @private
          * @param {*} validPr - pull request
          */
-        async getReleaseNotesFromPullRquest(validPr) {
+        async getReleaseNotesFromPullRequest(validPr) {
             return await Promise.all(validPr.map(async (prData) => {
                 const version = semver.valid(semver.coerce(prData.title));
                 const releaseNotes = await githubClient.extractReleaseNotesFromReleasePR(prData.number);
@@ -223,6 +272,21 @@ module.exports = function taoExtensionReleaseFactory(wwwUser) {
                     return { version, releaseNotes };
                 }
             }));
+        },
+
+        /**
+         * Find the last valid pull request
+         * @private
+         * @param pullRequests - pull requests array
+         */
+        findLastValidPullRequest(pullRequests) {
+            if (pullRequests.length) {
+                return pullRequests.find ((pr) => {
+                    return semver.valid(semver.coerce(pr.title));
+                });
+            } else {
+                log.exit('There are no pull requests to fetch version');
+            }
         }
 
     };

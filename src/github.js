@@ -45,15 +45,6 @@ module.exports = function githubFactory(token, repository) {
      * @typedef {Object} githubClient
      */
     return {
-
-        /**
-         * Search last github pull request
-         * @returns {Object}
-         */
-        async getLastPullRequest() {
-            return githubApiClient.getLastPullRequest(`repo:${repository} type:pr base:master is:merged`);
-        },
-
         /**
          * Get the commits SHAs from a Pull Request
          * @param {String|Number} prNumber - the pull request number
