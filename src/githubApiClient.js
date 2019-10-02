@@ -42,30 +42,6 @@ module.exports = function githubApiClientFactory(token) {
 
     return {
         /**
-         * Get last github pull request by query
-         *
-         * @param {String} searchQuery - query for github search api
-         * @returns {Object}
-         */
-        getLastPullRequest(searchQuery) {
-            const query = `
-            {
-                search(last: 1, query: "${searchQuery}", type: ISSUE) {
-                    nodes {
-                        ... on PullRequest {
-                            number,
-                            title,
-                            url
-                        }
-                    }
-                }
-            }
-            `;
-
-            return graphQLClient.request(query);
-        },
-
-        /**
          * Fetch commits of a PR by PR number
          *
          * @param {Number|String} prNumber - number of PR
