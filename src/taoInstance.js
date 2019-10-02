@@ -20,16 +20,11 @@
  * This module contains methods to retrieve info and data from a TAO instance.
  *
  * @author Bertrand Chevrier <bertrand@taotesting.com>
- * @author Bertrand Chevrier <bertrand@taotesting.com>
+ * @author Ricardo Proenca <ricardo@taotesting.com>
  */
 
 const fs                      = require('fs');
 const { normalize, basename } = require('path');
-const { exec }                = require('child_process');
-const phpParser               = require('php-parser');
-const crossSpawn              = require('cross-spawn');
-
-const isWin = /^win/.test(process.platform);
 
 /**
  * Get the taoInstance
@@ -39,7 +34,7 @@ const isWin = /^win/.test(process.platform);
  * @param {String} [wwwUser = www-data] - the user with web server rights
  * @return {Promise} resolves with a result object
  */
-module.exports = function taoInstanceFactory(rootDir = '', quiet = true, wwwUser = 'www-data') {
+module.exports = function taoInstanceFactory(rootDir = '') {
 
     return {
 
@@ -151,55 +146,6 @@ module.exports = function taoInstanceFactory(rootDir = '', quiet = true, wwwUser
             });
         },
 
-        // /**
-        // * Parse TAO manifest and extract most of it's info
-        // * @param {String} manifestPath - the path to the extension manifest
-        // * @return {Promise} resolves with an object that represents the manifest
-        // */
-        // parseManifest(manifestPath = '') {
-        //     //reducer AST to JSON for arrays
-        //     const reduceEntry = (entries) => {
-        //         return entries.items.reduce((acc, entry) => {
-        //             var value;
-
-        //             if (entry.value.kind === 'string') {
-        //                 value = entry.value.value;
-        //             }
-        //             if (entry.value.kind === 'array') {
-
-        //                 value = reduceEntry(entry.value);
-        //             }
-        //             if (entry.key && entry.key.kind === 'string') {
-        //                 acc[entry.key.value] = value;
-        //             }
-
-        //             return acc;
-        //         }, {});
-        //     };
-
-        //     return new Promise((resolve, reject) => {
-        //         fs.readFile(manifestPath, 'utf-8', (err, content) => {
-        //             if (err) {
-        //                 return reject(err);
-        //             }
-
-        //             //load AST from PHP code
-        //             let parsed = phpParser.parseCode(content)
-        //                 .children
-        //                 //assume the return expression contains the manifest
-        //                 .filter(token => token.kind === 'return')
-        //                 .reduce((acc, token) => {
-        //                     if (token.expr.kind === 'array') {
-        //                         return reduceEntry(token.expr);
-        //                     }
-        //                     return acc;
-        //                 }, {});
-
-        //             resolve(parsed);
-        //         });
-        //     });
-        // },
-
         /**
          * Extract the repository name from the extension composer
          * @param {String} extensionName - the name of the extension
@@ -222,122 +168,5 @@ module.exports = function taoInstanceFactory(rootDir = '', quiet = true, wwwUser
                 });
             });
         },
-
-        // /**
-        //  * Run bundling for SASS and JavaScript assets.
-        //  * Run npm install if not done yet on the TAO instance.
-        //  *
-        //  * @param {String} extensionName - the name of the extension to bundle
-        //  * @returns {Promise} resolves once done
-        //  */
-        // buildAssets(extensionName = ''){
-        //     const options = {
-        //         cwd : normalize(`${rootDir}/tao/views/build`)
-        //     };
-        //     if(!quiet){
-        //         options.stdio = 'inherit';
-        //     }
-
-        //     /**
-        //      * Touch the mathjax fallback if needed to prevent build to fail
-        //      * @returns {Promise}
-        //      */
-        //     const mathJaxFallback = () => {
-        //         const touchFile = normalize(`${rootDir}/taoQtiItem/views/js/mathjax/MathJax.js`);
-        //         return new Promise( (resolve, reject) => {
-        //             fs.open(touchFile, 'wx', (openErr, fd) => {
-        //                 if(openErr){
-        //                     //the file exists we are fine with that
-        //                     if( openErr.code !== 'EEXISTS'){
-        //                         return resolve();
-        //                     }
-        //                     return reject(openErr);
-        //                 }
-        //                 fs.close(fd, closeErr => {
-        //                     if(closeErr){
-        //                         return reject(closeErr);
-        //                     }
-        //                     return resolve();
-        //                 });
-        //             });
-        //         });
-        //     };
-
-        //     /**
-        //      * run the given grunt task for the current extension :
-        //      * `grunt extensionNametask`
-        //      * @param {String} task
-        //      */
-        //     const runGruntTask = task => {
-        //         return new Promise( (resolve, reject) => {
-        //             const spawned = crossSpawn(normalize(`${options.cwd}/node_modules/.bin/grunt`), [`${extensionName.toLowerCase()}${task}`], options);
-        //             spawned.on('close', code => code === 0 ? resolve() : reject());
-        //         });
-        //     };
-
-        //     /**
-        //      * run `npm install` on the TAO build folder at least once
-        //      */
-        //     const installNpm = () => {
-        //         return new Promise( (resolve, reject) => {
-        //             const spawned = crossSpawn('npm', ['install'], options);
-        //             spawned.on('close', code => code === 0 ? resolve() : reject());
-        //         });
-        //     };
-
-        //     /**
-        //      * run tasks in sequence
-        //      * @param {String[]} tasks - the list of grunt tasks
-        //      */
-        //     const runTasks = tasks =>
-        //         tasks.reduce(
-        //             (promise, task) => promise.then(() => runGruntTask(task)),
-        //             Promise.resolve()
-        //         );
-
-        //     return new Promise( resolve => {
-
-        //         const buildConfigPath = normalize(`${rootDir}/${extensionName}/views/build/grunt`);
-        //         fs.readdir(buildConfigPath, (err, files) => {
-        //             const availableTasks = [];
-        //             if(err){
-        //                 return resolve(availableTasks);
-        //             }
-
-        //             if(files.indexOf('sass.js') > -1){
-        //                 availableTasks.push('sass');
-        //             }
-        //             if(files.indexOf('bundle.js') > -1){
-        //                 availableTasks.push('bundle');
-        //             }
-        //             return resolve(availableTasks);
-        //         });
-        //     }).then( tasks => {
-        //         if(tasks.length){
-        //             return mathJaxFallback()
-        //                 .then( () => installNpm() )
-        //                 .then( () => runTasks(tasks));
-        //         }
-        //     });
-        // },
-
-        // /**
-        //  * Update translations
-        //  *
-        //  * @param {String} extensionName - the name of the extension to bundle
-        //  * @returns {Promise} resolves once done
-        //  */
-        // updateTranslations(extensionName = ''){
-        //     const options = {
-        //         cwd : rootDir
-        //     };
-        //     return new Promise( (resolve, reject) => {
-        //         const command = (isWin ? '' : `sudo -u ${wwwUser} `) + `php tao/scripts/taoTranslate.php -a=updateAll -e=${extensionName}`;
-        //         const execed = exec(command, options);
-        //         execed.stdout.pipe(process.stdout);
-        //         execed.stderr.pipe(process.stderr);
-        //         execed.on('exit', code => code === 0 ? resolve() : reject( new Error('Something went wrong in the translation generation')));
-        //     });
-        // }
     };
 };

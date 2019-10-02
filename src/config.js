@@ -13,12 +13,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2017 Open Assessment Technologies SA;
+ * Copyright (c) 2017-2019 Open Assessment Technologies SA;
  */
 
 /**
  * This module let's you manage local configuration
  * @author Bertrand Chevrier <bertrand@taotesting.com>
+ * @author Ricardo Proenca <ricardo@taotesting.com>
  */
 const fs = require('fs-extra');
 const path = require('path');
