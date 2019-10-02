@@ -37,7 +37,26 @@ updateNotifier({pkg}).notify();
 const argv = require('minimist')(process.argv.slice(2));
 
 const wwwUser = argv['www-user'] || 'www-data';
-const release = require('./src/release')(wwwUser);
+const extensions = require('./release_notes/extensions.json');
+
+const release = require('./src/release')(wwwUser, extensions);
+
+async function automaticExtraction(extension) {
+    await release.selectExtension(extension);
+    await release.initialiseGithubClient();
+    await release.extractPullRequests();
+    await release.selectLastVersion({autoSelectLastVersion: true});
+    await release.filterPullRequests();
+    await release.extractReleaseNotes();
+    await release.writeChangeLog();
+}
+
+async function processExtensionsArray(extensions) {
+    for (const extension of extensions) {
+        await automaticExtraction(extension);
+    }
+    log.done('Good job!');
+}
 
 async function releaseExtension() {
     try {
@@ -45,14 +64,10 @@ async function releaseExtension() {
 
         await release.loadConfig();
         await release.selectTaoInstance();
-        await release.selectExtension();
-        await release.initialiseGithubClient();
-        await release.selectLastVersion();
-        await release.extractPullRequests();
-        await release.extractReleaseNotes();
-        await release.writeChangeLog();
+        await release.showExtensions();
 
-        log.done('Good job!');
+        await processExtensionsArray(extensions);
+
     } catch (error) {
         log.error(error);
     }
