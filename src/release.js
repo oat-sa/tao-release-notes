@@ -34,34 +34,20 @@ const github = require('./github.js');
 const log = require('./log.js');
 const taoInstanceFactory = require('./taoInstance.js');
 
-const getPrData = async (githubClient, validPr) => {
-    return await Promise.all(validPr.map(async (prData) => {
-        const version = semver.valid(semver.coerce(prData.title));
-        const releaseNotes = await githubClient.extractReleaseNotesFromReleasePR(prData.number);
-        if (version && releaseNotes) {
-            return { version, releaseNotes };
-        }
-    }));
-};
-
 /**
  * Get the taoExtensionRelease
  *
- * @param {String} baseBranch - branch to release from
- * @param {String} branchPrefix - releasing branch prefix
- * @param {String} origin - git repository origin
- * @param {String} releaseBranch - branch to release to
  * @param {String} wwwUser - name of the www user
  * @return {Object} - instance of taoExtensionRelease
  */
-module.exports = function taoExtensionReleaseFactory(baseBranch, branchPrefix, origin, releaseBranch, wwwUser) {
+module.exports = function taoExtensionReleaseFactory(wwwUser) {
     let data = {};
     let githubClient;
     let taoInstance;
 
     return {
         /**
-         * Initialise github client for the extension to release repository
+         * Initialise github client for the extension repository
          */
         async initialiseGithubClient() {
             const repoName = await taoInstance.getRepoName(data.extension.name);
@@ -98,7 +84,7 @@ module.exports = function taoExtensionReleaseFactory(baseBranch, branchPrefix, o
         },
 
         /**
-         * Select and initialise the extension to release
+         * Select and initialise the extension
          */
         async selectExtension() {
             const availableExtensions = await taoInstance.getExtensions();
@@ -120,12 +106,17 @@ module.exports = function taoExtensionReleaseFactory(baseBranch, branchPrefix, o
             await config.write(data);
         },
 
+        /**
+         * Select and initialise the version
+         */
         async selectLastVersion() {
+            const lastPrData = await githubClient.getLastPullRequest();
+
             const { lastVersionUsed } = await inquirer.prompt({
                 type: 'input',
                 name: 'lastVersionUsed',
-                message: 'Last version used: ',
-                default: '8.1.0'
+                message: 'From which starting version you want to pull release notes: ',
+                default: `${semver.valid(semver.coerce(lastPrData.search.nodes[0].title))}`
             });
 
             if (!lastVersionUsed) {
@@ -183,14 +174,14 @@ module.exports = function taoExtensionReleaseFactory(baseBranch, branchPrefix, o
         },
 
         /**
-         * Extract release notes from release pull request
+         * Extract release notes from pull requests
          */
         async extractReleaseNotes() {
             log.doing('Extracting release notes');
 
             if (data.validPullRequests.length) {
                 data.releaseNotes = [];
-                data.releaseNotes.push(...(await getPrData(githubClient, data.validPullRequests)));
+                data.releaseNotes.push(...(await this.getReleaseNotesFromPullRquest(data.validPullRequests)));
             } else {
                 log.exit('No valid PR found.');
             }
@@ -199,7 +190,7 @@ module.exports = function taoExtensionReleaseFactory(baseBranch, branchPrefix, o
         /**
          * Write a file with change log
          */
-        writeChangeLog() {
+        async writeChangeLog() {
             log.doing('Writing change log');
 
             const file = fs.createWriteStream(`./release_notes/${data.extension.name}_release_notes.md`);
@@ -217,6 +208,21 @@ module.exports = function taoExtensionReleaseFactory(baseBranch, branchPrefix, o
                 }
             });
             file.end();
+        },
+
+        /**
+         * Get release notes from single pull request
+         * @private
+         * @param {*} validPr - pull request
+         */
+        async getReleaseNotesFromPullRquest(validPr) {
+            return await Promise.all(validPr.map(async (prData) => {
+                const version = semver.valid(semver.coerce(prData.title));
+                const releaseNotes = await githubClient.extractReleaseNotesFromReleasePR(prData.number);
+                if (version && releaseNotes) {
+                    return { version, releaseNotes };
+                }
+            }));
         }
 
     };

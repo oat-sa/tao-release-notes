@@ -47,11 +47,11 @@ module.exports = function githubFactory(token, repository) {
     return {
 
         /**
-         * Search last 100 github pull requests
+         * Search last github pull request
          * @returns {Object}
          */
-        async searchLastPullRequests() {
-            return githubApiClient.searchLastPullRequests(`repo:${repository} type:pr base:master is:merged`);
+        async getLastPullRequest() {
+            return githubApiClient.getLastPullRequest(`repo:${repository} type:pr base:master is:merged`);
         },
 
         /**
@@ -188,5 +188,14 @@ module.exports = function githubFactory(token, repository) {
             }
             return note.join('');
         },
+
+        /**
+         * Search last 100 github pull requests
+         * @returns {Object}
+         */
+        async searchLastPullRequests() {
+            return githubApiClient.searchLastPullRequests(`repo:${repository} type:pr base:master is:merged`);
+        }
+
     };
 };

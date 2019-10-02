@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2017 Open Assessment Technologies SA;
+ * Copyright (c) 2017-2019 Open Assessment Technologies SA;
  */
 
 /**
@@ -36,23 +36,18 @@ updateNotifier({pkg}).notify();
 
 const argv = require('minimist')(process.argv.slice(2));
 
-const baseBranch = argv['base-branch'] || 'develop';
-const branchPrefix = argv['branch-prefix'] || 'release';
-const origin = argv['origin'] || 'origin';
-const releaseBranch = argv['release-branch'] || 'master';
 const wwwUser = argv['www-user'] || 'www-data';
-
-const release = require('./src/release')(baseBranch, branchPrefix, origin, releaseBranch, wwwUser);
+const release = require('./src/release')(wwwUser);
 
 async function releaseExtension() {
     try {
-        log.title('TAO Extension Release');
+        log.title('TAO Release Notes');
 
         await release.loadConfig();
         await release.selectTaoInstance();
         await release.selectExtension();
-        await release.selectLastVersion();
         await release.initialiseGithubClient();
+        await release.selectLastVersion();
         await release.extractPullRequests();
         await release.extractReleaseNotes();
         await release.writeChangeLog();
