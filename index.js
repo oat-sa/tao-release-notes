@@ -45,7 +45,7 @@ async function automaticExtraction(extension) {
     await release.selectExtension(extension);
     await release.initialiseGithubClient();
     await release.extractPullRequests();
-    await release.selectLastVersion({autoSelectLastVersion: true});
+    await release.selectLastVersion();
     await release.filterPullRequests();
     await release.extractReleaseNotes();
     await release.writeChangeLog();
@@ -60,7 +60,7 @@ async function processExtensionsArray(extensions) {
 
 async function releaseExtension() {
     try {
-        log.title('TAO Release Notes');
+        log.title('TAO NCCER Release Notes');
 
         await release.loadConfig();
         await release.selectTaoInstance();

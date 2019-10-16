@@ -200,7 +200,7 @@ module.exports = function taoExtensionReleaseFactory(wwwUser, extensionsSelected
                 data.filteredPullRequests = data.pullRequests.filter((pr) => {
                     const version = semver.valid(semver.coerce(pr.title));
                     if (version) {
-                        return semver.gte(version, data.extension.lastVersionUsed);
+                        return semver.gt(version, data.extension.lastVersionUsed);
                     }
                 });
 
