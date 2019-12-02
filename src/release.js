@@ -129,30 +129,57 @@ module.exports = function taoExtensionReleaseFactory(wwwUser, extensionsSelected
         },
 
         /**
-          *
+          * Select version from which to start pulling release notes
           * @param {Object} options
           */
-        async selectLastVersion(options = null) {
+        async selectStartVersion(options = null) {
             const lastValidPr = this.findLastValidPullRequest(data.pullRequests);
-            let lastVersion = `${semver.valid(semver.coerce(lastValidPr.title))}`;
+            let version = `${semver.valid(semver.coerce(lastValidPr.title))}`;
 
-            if (!options || !options.autoSelectLastVersion) {
-                const { lastVersionUsed } = await inquirer.prompt({
+            if (!options || !options.autoSelectversion) {
+                const { startVersion } = await inquirer.prompt({
                     type: 'input',
-                    name: 'lastVersionUsed',
-                    message: 'From which starting version you want to pull release notes: ',
-                    default: lastVersion
+                    name: 'startVersion',
+                    message: 'Starting version to pull release notes: ',
+                    default: version
                 });
 
-                if (!lastVersionUsed) {
-                    log.exit(`Please provide a correct version for extension '${data.extension}'.`);
+                if (!startVersion) {
+                    log.exit(`Please provide a correct version for extension '${data.extension.name}'.`);
                 }
 
-                lastVersion = lastVersionUsed;
+                version = startVersion;
             }
 
-            data.extension.lastVersionUsed = lastVersion;
-            log.done(`Version selected: ${ data.extension.lastVersionUsed}`);
+            data.extension.startVersion = version;
+            log.done(`Start version selected: ${ data.extension.startVersion}`);
+        },
+
+        /**
+          * Select last version to pull release notes
+          * @param {Object} options
+          */
+        async selectEndVersion(options = null) {
+            const lastValidPr = this.findLastValidPullRequest(data.pullRequests);
+            let version = `${semver.valid(semver.coerce(lastValidPr.title))}`;
+
+            if (!options || !options.autoSelectversion) {
+                const { endVersion  } = await inquirer.prompt({
+                    type: 'input',
+                    name: 'endVersion',
+                    message: 'End version to pull release notes: ',
+                    default: version
+                });
+
+                if (!endVersion ) {
+                    log.exit(`Please provide a correct version for extension '${data.extension.name}'.`);
+                }
+
+                version = endVersion ;
+            }
+
+            data.extension.endVersion  = version;
+            log.done(`End version selected: ${ data.extension.endVersion }`);
         },
 
         /**
@@ -200,14 +227,17 @@ module.exports = function taoExtensionReleaseFactory(wwwUser, extensionsSelected
                 data.filteredPullRequests = data.pullRequests.filter((pr) => {
                     const version = semver.valid(semver.coerce(pr.title));
                     if (version) {
-                        return semver.gt(version, data.extension.lastVersionUsed);
+                        const {startVersion, endVersion} = data.extension;
+                        return semver.satisfies(version, `${startVersion} - ${endVersion}`);
                     }
                 });
 
                 if (data.filteredPullRequests.length){
                     data.pullRequests = []; // invalidate pull request once we filter all
+                    data.skip = false;
                 } else {
-                    log.exit('No valid versions for PR data', data.pullRequests);
+                    log.warn('No valid versions for PR data, skipping...');
+                    data.skip = true;
                 }
 
             } else {
@@ -219,44 +249,48 @@ module.exports = function taoExtensionReleaseFactory(wwwUser, extensionsSelected
          * Extract release notes from pull requests
          */
         async extractReleaseNotes() {
-            log.doing('Extracting release notes');
-            let selectPullRequests;
-            data.releaseNotes = [];
+            if (data.skip !== true) {
+                log.doing('Extracting release notes');
+                let selectPullRequests;
+                data.releaseNotes = [];
 
-            if (data.filteredPullRequests && data.filteredPullRequests.length) {
-                selectPullRequests = data.filteredPullRequests; // parse filtered pull requests
+                if (data.filteredPullRequests && data.filteredPullRequests.length) {
+                    selectPullRequests = data.filteredPullRequests; // parse filtered pull requests
 
-            } else if (data.pullRequests && data.pullRequests.length) {
-                selectPullRequests = data.pullRequests; // parse unfiltered pull requests
+                } else if (data.pullRequests && data.pullRequests.length) {
+                    selectPullRequests = data.pullRequests; // parse unfiltered pull requests
 
-            } else {
-                log.exit('No valid PR found.');
+                } else {
+                    log.exit('No valid PR found.');
+                }
+
+                data.releaseNotes.push(...(await this.getReleaseNotesFromPullRequest(selectPullRequests)));
             }
-
-            data.releaseNotes.push(...(await this.getReleaseNotesFromPullRequest(selectPullRequests)));
         },
 
         /**
          * Write a file with change log
          */
         async writeChangeLog() {
-            log.doing('Writing change log');
+            if (data.skip !== true) {
+                log.doing('Writing change log');
 
-            const file = fs.createWriteStream(`./release_notes/${data.extension.name}_release_notes.md`);
-            file.on('error', (err) => {
-                log.exit(`Error writing file: ${err}`);
-            });
+                const file = fs.createWriteStream(`./release_notes/${data.extension.name}_release_notes.md`);
+                file.on('error', (err) => {
+                    log.exit(`Error writing file: ${err}`);
+                });
 
-            data.releaseNotes.forEach((note) => {
-                if (note && note.version && semver.valid(semver.coerce(note.version)) && note.releaseNotes) {
-                    file.write(`# ${note.version}\n`);
-                    file.write('\n');
-                    file.write(`${note.releaseNotes}`);
-                    file.write('\n');
-                    file.write('\n');
-                }
-            });
-            file.end();
+                data.releaseNotes.forEach((note) => {
+                    if (note && note.version && semver.valid(semver.coerce(note.version)) && note.releaseNotes) {
+                        file.write(`# ${note.version}\n`);
+                        file.write('\n');
+                        file.write(`${note.releaseNotes}`);
+                        file.write('\n');
+                        file.write('\n');
+                    }
+                });
+                file.end();
+            }
         },
 
         /**

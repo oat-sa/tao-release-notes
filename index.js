@@ -45,13 +45,16 @@ async function automaticExtraction(extension) {
     await release.selectExtension(extension);
     await release.initialiseGithubClient();
     await release.extractPullRequests();
-    await release.selectLastVersion();
+    await release.selectStartVersion();
+    await release.selectEndVersion();
     await release.filterPullRequests();
     await release.extractReleaseNotes();
     await release.writeChangeLog();
 }
 
 async function processExtensionsArray(extensions) {
+    log.title('Processing extensions');
+
     for (const extension of extensions) {
         await automaticExtraction(extension);
     }
