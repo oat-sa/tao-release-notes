@@ -34,7 +34,7 @@ module.exports = {
      * @returns {Object} single PR
      */
     findFirstValidPullRequest(pullRequests) {
-        return this.findLastValidPullRequest(pullRequests.reverse());
+        return this.findLastValidPullRequest([...pullRequests].reverse());
     },
 
     /**
