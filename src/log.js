@@ -47,7 +47,7 @@ module.exports = {
         return this;
     },
     info(msg){
-        console.log(chalk.blue(msg));
+        console.log(chalk.cyan(msg));
         return this;
     },
     error(err){
