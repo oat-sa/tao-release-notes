@@ -106,6 +106,7 @@ module.exports = function githubApiClientFactory(token) {
 
         /**
          * Search last github pull requests by query
+         * Includes some commit messages for the case where the title is a truncated message
          *
          * @param {String} searchQuery - query for github search api
          * @returns {Object}
@@ -118,7 +119,15 @@ module.exports = function githubApiClientFactory(token) {
                         ... on PullRequest {
                             number,
                             title,
-                            url
+                            commits(last: 10) {
+                                nodes {
+                                    commit {
+                                        message
+                                        messageHeadline
+                                        messageBody
+                                    }
+                                }
+                            }
                         }
                     }
                 }
