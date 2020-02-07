@@ -90,10 +90,11 @@ async function expandTaoCommunity(extensions = {}) {
     const community = 'oat-sa/tao-community';
 
     if (Object.keys(extensions).includes(community)) {
-        const resolvedExtensions = await requests.resolveTaoCommunityComposer(extensions[community]);
+        const tcVersion = extensions[community];
+        const resolvedExtensions = await requests.resolveTaoCommunityComposer(tcVersion);
         Object.assign(extensions, resolvedExtensions);
         delete extensions[community];
-        log.done(`Retrieved ${Object.keys(resolvedExtensions).length} extension versions.`);
+        log.done(`Retrieved ${Object.keys(resolvedExtensions).length} extension versions for tao-community v${tcVersion}.`);
     }
     return extensions;
 }

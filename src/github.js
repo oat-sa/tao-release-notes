@@ -110,7 +110,7 @@ module.exports = function githubFactory(token, repository) {
             return uniqIssue
                 .map(issue => ({
                     ...issue,
-                    commit: issue.commit.oid,
+                    commit: issue && issue.commit && issue.commit.oid,
                 }))
                 .map(this.formatReleaseNote)
                 .reduce((acc, note) => note ? `${acc} - ${note}\n` : acc, '');
