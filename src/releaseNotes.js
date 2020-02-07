@@ -94,7 +94,7 @@ async function expandTaoCommunity(extensions = {}) {
         const resolvedExtensions = await requests.resolveTaoCommunityComposer(extensions[community]);
         Object.assign(extensions, resolvedExtensions);
         delete extensions[community];
-        log.done(`Retrieved ${resolvedExtensions.length} extension versions.`);
+        log.done(`Retrieved ${Object.keys(resolvedExtensions).length} extension versions.`);
     }
     return extensions;
 }
