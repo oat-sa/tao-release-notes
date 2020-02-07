@@ -140,20 +140,12 @@ async function downloadSingle(extension = '') {
 
     data = await io.loadConfig();
 
-    // prompt for start & end (without fetching suggestion)
-    const startVersion = await versioning.selectStartVersion();
-    const endVersion = await versioning.selectEndVersion();
+    // prompt for start & end
+    let releaseNotes = await extractReleaseNotesRange({ repoName: extension });
 
-    const extRange = {
-        repoName: extension,
-        startVersion,
-        endVersion
-    };
-    // go
-    let releaseNotes = await extractReleaseNotesRange(extRange);
     if (releaseNotes && releaseNotes.length) {
         setupOutputDir();
-        await io.writeChangeLog(extRange.repoName, outputDir, releaseNotes);
+        await io.writeChangeLog(extension, outputDir, releaseNotes);
     }
 }
 
@@ -200,6 +192,7 @@ async function wrap(internalLogic, ...args) {
     }
 }
 
+// Export the 2 main partially-applied (wrapped) functions
 module.exports = {
     downloadSingle: wrap.bind(null, downloadSingle),
     downloadMultiple: wrap.bind(null, downloadMultiple)

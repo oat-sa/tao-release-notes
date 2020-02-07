@@ -46,7 +46,7 @@ module.exports = {
     findLastValidPullRequest(pullRequests) {
         if (pullRequests.length) {
             return pullRequests.find(pr => {
-                return semver.valid(semver.coerce(pr.title)); // ??
+                return semver.valid(semver.coerce(pr.title));
             });
         }
         else {
@@ -64,12 +64,12 @@ module.exports = {
      * @returns {Object} versions
      */
     async defineVersions(startVersion, endVersion, pullRequests, autoVersions = false) {
-        // One or the other could be empty, but not both!
+        // One or the other could be empty (composers mode), or even both (single mode)
         // Prompt if missing
         if (!startVersion) {
             startVersion = await this.selectStartVersion(pullRequests, autoVersions);
         }
-        else if (!endVersion) {
+        if (startVersion && !endVersion) {
             endVersion = await this.selectEndVersion(pullRequests, autoVersions);
         }
         // Even if versions provided, we should clean up modifiers
