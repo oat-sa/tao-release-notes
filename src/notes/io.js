@@ -62,8 +62,8 @@ module.exports = {
      * @returns {Object}
      */
     async getComposers() {
-        const file1 = await this.promptForComposerJson('Path to the starting composer.json', 'flat-composer.json');
-        const file2 = await this.promptForComposerJson('Path to the ending composer.json', 'nested-composer.json');
+        const file1 = await this.promptForComposerJson('Path to the starting composer.json');
+        const file2 = await this.promptForComposerJson('Path to the ending composer.json');
         return await this.readComposerFiles({ file1, file2 });
     },
 
@@ -81,16 +81,16 @@ module.exports = {
 
     /**
      * Prompt the user for a path to a composer.json
-     * @param {String} message
-     * @param {*} defaultFile
+     * @param {String} [message='Path?']
+     * @param {String} [defaultFile='composer.json']
      * @returns {String} path
      */
-    async promptForComposerJson(message, defaultFile) {
+    async promptForComposerJson(message = 'Path?', defaultFile = 'composer.json') {
         const { composerJsonPath } = await inquirer.prompt({
             type: 'input',
             name: 'composerJsonPath',
             message,
-            default: `${process.cwd()}/release_notes/_versions/${defaultFile}`
+            default: `${process.cwd()}/${defaultFile}`
         });
 
         return composerJsonPath;
