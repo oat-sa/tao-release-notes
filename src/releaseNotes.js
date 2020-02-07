@@ -23,7 +23,6 @@ const chalk = require('chalk');
 const log = require('./log.js');
 const io = require('./notes/io.js');
 const requests = require('./notes/requests.js')();
-const notes = require('./notes/notes.js')(requests);
 const versioning = require('./notes/versioning.js');
 
 let outputDir;
@@ -119,8 +118,8 @@ async function extractReleaseNotesRange(extRange = {}, autoVersions = false) {
         return [];
     }
 
-    const filteredPullRequests = await notes.filterPullRequests(pullRequests, startVersion, endVersion);
-    const releaseNotes = await notes.extractReleaseNotes(filteredPullRequests);
+    const filteredPullRequests = await requests.filterPullRequests(pullRequests, startVersion, endVersion);
+    const releaseNotes = await requests.extractReleaseNotes(filteredPullRequests);
     return releaseNotes;
 }
 
