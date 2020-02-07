@@ -15,65 +15,57 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2017-2019 Open Assessment Technologies SA;
+ * Copyright (c) 2020 Open Assessment Technologies SA;
  */
 
 /**
  * CLI script entry point
- *
- * Long but linear process.
- *
- * @author Bertrand Chevrier <bertrand@taotesting.com>
- * @author Ricardo Proenca <ricardo@taotesting.com>
  */
 
-const updateNotifier = require('update-notifier');
-
-const log = require('./src/log.js');
 const pkg = require('./package.json');
-
+const updateNotifier = require('update-notifier');
 updateNotifier({pkg}).notify();
 
-const argv = require('minimist')(process.argv.slice(2));
+const releaseNotes = require('./src/releaseNotes.js');
 
-const wwwUser = argv['www-user'] || 'www-data';
-const extensions = require('./release_notes/extensions.json');
+const commander = require('commander');
+const program = new commander.Command();
 
-const release = require('./src/release')(wwwUser, extensions);
+program
+    .version(pkg.version)
+    .name('taoReleaseNotes')
+    .usage('<composers|single> [options]');
 
-async function automaticExtraction(extension) {
-    await release.selectExtension(extension);
-    await release.initialiseGithubClient();
-    await release.extractPullRequests();
-    await release.selectStartVersion();
-    await release.selectEndVersion();
-    await release.filterPullRequests();
-    await release.extractReleaseNotes();
-    await release.writeChangeLog();
-}
+/**
+ * The most basic 'composers' command will prompt for the paths to the 2 composer.json files:
+ * @usage taoReleaseNotes composers
+ *
+ * Optionally, the composer file locations can be passed as arguments:
+ * @usage taoReleaseNotes composers --c1 composer1.json --c2 composer2.json
+ */
+program
+    .command('composers')
+    .option('--c1 <file>', 'Path to composer.json for start of range')
+    .option('--c2 <file>', 'Path to composer.json for end of range')
+    .option('-a, --autoVersions', 'Automatically fill any missing versions instead of prompting', true)
+    .action(args => {
+        if (args.c1 && args.c2) {
+            releaseNotes.downloadMultiple(args.c1, args.c2, args.autoVersions);
+        }
+        else {
+            releaseNotes.downloadMultiple(null, null, args.autoVersions);
+        }
+    });
 
-async function processExtensionsArray(extensions) {
-    log.title('Processing extensions');
+/**
+ * The 'single' command must be passed an extension repo name, it will prompt for the desired version range
+ * @usage taoReleaseNotes single -e extension-tao-itemqti
+ */
+program
+    .command('single')
+    .option('-e, --extension <extension>', 'Repo name of an individual extension')
+    .action(args => {
+        releaseNotes.downloadSingle(args.extension);
+    });
 
-    for (const extension of extensions) {
-        await automaticExtraction(extension);
-    }
-    log.done('Good job!');
-}
-
-async function releaseExtension() {
-    try {
-        log.title('TAO NCCER Release Notes');
-
-        await release.loadConfig();
-        await release.selectTaoInstance();
-        await release.showExtensions();
-
-        await processExtensionsArray(extensions);
-
-    } catch (error) {
-        log.error(error);
-    }
-}
-
-releaseExtension();
+program.parse(process.argv);
