@@ -1,5 +1,5 @@
 {
-  "name": "tao-release-notes",
+  "name": "@oat-sa/tao-release-notes",
   "version": "0.1.0",
   "description": "Extract release notes from a TAO extension",
   "main": "index.js",
@@ -14,20 +14,27 @@
   "bin": {
     "taoReleaseNotes": "./index.js"
   },
+  "files": [
+    "src"
+  ],
+  "nyc": {
+    "exclude": [
+      "tests"
+    ]
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ricproenca-tao/tao-release-notes.git"
+    "url": "git+https://github.com/oat-sa/tao-release-notes.git"
   },
   "keywords": [
     "release",
     "notes"
   ],
-  "author": "Ricardo Proenca <ricardo@taotesting.com>",
-  "license": "MIT",
+  "license": "GPL-2.0",
   "bugs": {
-    "url": "https://github.com/ricproenca-tao/tao-release-notes/issues"
+    "url": "https://github.com/oat-sa/tao-release-notes/issues"
   },
-  "homepage": "https://github.com/ricproenca-tao/tao-release-notes#readme",
+  "homepage": "https://github.com/oat-sa/tao-release-notes#readme",
   "dependencies": {
     "chalk": "^2.1.0",
     "commander": "^2.20.3",
