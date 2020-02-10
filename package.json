@@ -1,6 +1,6 @@
 {
   "name": "@oat-sa/tao-release-notes",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Extract release notes from a TAO extension",
   "main": "index.js",
   "scripts": {

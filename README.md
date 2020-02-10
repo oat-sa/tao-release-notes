@@ -5,7 +5,7 @@ A CLI tool for extracting release notes from Github repos
 ## Project setup
 
 ```sh
-npm install
+npm install -g @oat-sa/tao-release-notes # installs globally and creates the 'taoReleaseNotes' binary
 ```
 
 ## Prerequisites
