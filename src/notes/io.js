@@ -42,7 +42,7 @@ module.exports = {
         if (!data.token) {
             setTimeout(() => opn('https://github.com/settings/tokens'), 2000);
 
-            const { token } = await inquirer.prompt({
+            const { inputToken } = await inquirer.prompt({
                 type: 'input',
                 name: 'token',
                 message: 'I need a Github token, with "repo" rights (check your browser) : ',
@@ -50,7 +50,7 @@ module.exports = {
                 filter: token => token.trim()
             });
 
-            data.token = token;
+            data.token = inputToken;
 
             await config.write(data);
         }
