@@ -1,0 +1,31 @@
+{
+  "name": "oat-sa/deploy-test-package",
+  "license": "GPL-2.0",
+  "config": {
+      "preferred-install": "dist"
+  },
+  "support": {
+      "issues": "http://forge.taotesting.com",
+      "forum": "http://forum.taotesting.com"
+  },
+  "keywords": [
+      "tao",
+      "oat",
+      "computer-based-assessment"
+  ],
+  "repositories": [
+  ],
+  "minimum-stability": "dev",
+  "homepage": "http://www.taotesting.com",
+  "require": {
+      "oat-sa/generis": "11.0.0",
+      "oat-sa/tao-core": "39.0.0",
+      "oat-sa/extension-tao-itemqti-pci": "6.1.2"
+    },
+  "require-dev": {
+      "mikey179/vfsstream": "1.4.0",
+      "phpunit/phpunit": "^4.8",
+      "pear/archive_tar": "^1.4"
+  },
+  "description": "TAO is an Open Source e-Testing platform that empowers you to build, deliver, and share innovative and engaging assessments online \u2013 in any language or subject matter."
+}
