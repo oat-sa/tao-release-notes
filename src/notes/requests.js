@@ -107,22 +107,6 @@ module.exports = function requestsFactory() {
         },
 
         /**
-         * Get release notes from single pull request
-         * @private
-         * @param {Object} validPr - pull request
-         * @returns {Object}
-         */
-        async getReleaseNotesFromPullRequest(validPr) {
-            return await Promise.all(validPr.map(async (prData) => {
-                const version = semver.valid(semver.coerce(prData.title));
-                const releaseNotes = await githubClient.extractReleaseNotesFromReleasePR(prData.number);
-                if (version && releaseNotes) {
-                    return { version, releaseNotes };
-                }
-            }));
-        },
-
-        /**
          * Filter full list of PRs down to those within the desired version range
          * @param {Array} pullRequests
          * @param {String} startVersion
@@ -164,9 +148,27 @@ module.exports = function requestsFactory() {
                 return [];
             }
 
-            const releaseNotes = [...(await this.getReleaseNotesFromPullRequest(pullRequests))];
+            const releaseNotes = [...(await this.getReleaseNotesFromPullRequests(pullRequests))];
             log.info(`${releaseNotes.length} versions with notes found.`);
             return releaseNotes;
+        },
+
+        /**
+         * Get release notes from single pull request
+         * @private
+         * @param {Array} pullRequests
+         * @returns {Array} versions & release notes
+         */
+        async getReleaseNotesFromPullRequests(pullRequests = []) {
+            return (await Promise.all(
+                pullRequests
+                    .map(async (prData) => {
+                        const version = semver.valid(semver.coerce(prData.title));
+                        const releaseNotes = await githubClient.extractReleaseNotesFromReleasePR(prData.number);
+                        // console.log(releaseNotes);
+                        return { version, releaseNotes };
+                    })
+            )).filter(pr => pr.version && pr.releaseNotes);
         }
     };
 };

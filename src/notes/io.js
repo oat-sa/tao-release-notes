@@ -133,13 +133,10 @@ module.exports = {
 
         releaseNotes.forEach((note) => {
             if (note && note.version && semver.valid(semver.coerce(note.version)) && note.releaseNotes) {
-                file.write('\n');
-                file.write(`## ${note.version}\n`);
-                file.write('\n');
-                file.write(`${note.releaseNotes}`);
+                file.write(`\n## ${note.version}\n`);
+                file.write(`\n${note.releaseNotes}`);
             }
         });
-
         file.end();
     },
 
