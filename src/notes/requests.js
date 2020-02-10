@@ -134,6 +134,10 @@ module.exports = function requestsFactory() {
                 log.error('No PR data', pullRequests);
                 return [];
             }
+            if (!startVersion || !endVersion) {
+                log.error('One or both versions missing:', startVersion, endVersion);
+                return [];
+            }
 
             // Filter function
             const inRange = (pr) => {
@@ -152,7 +156,7 @@ module.exports = function requestsFactory() {
          * @param {Array} pullRequests
          * @returns {Array} release notes
          */
-        async extractReleaseNotes(pullRequests) {
+        async extractReleaseNotes(pullRequests = []) {
             log.doing('Extracting release notes');
 
             if (!pullRequests | !pullRequests.length) {

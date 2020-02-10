@@ -31,27 +31,37 @@ module.exports = {
      * Find the first valid pull request
      * @private
      * @param {Array} pullRequests
-     * @returns {Object} single PR
+     * @returns {Object|null} single PR
      */
-    findFirstValidPullRequest(pullRequests) {
-        return this.findLastValidPullRequest([...pullRequests].reverse());
+    findFirstValidPullRequest(pullRequests = []) {
+        if (pullRequests.length) {
+            const firstPR = [...pullRequests].reverse().find(pr => {
+                return semver.valid(semver.coerce(pr.title));
+            });
+            return firstPR || null;
+        }
+        else {
+            log.error('There are no pull requests to fetch version');
+            return null;
+        }
     },
 
     /**
      * Find the last valid pull request
      * @private
      * @param {Array} pullRequests
-     * @returns {Object} single PR
+     * @returns {Object|null} single PR
      */
-    findLastValidPullRequest(pullRequests) {
+    findLastValidPullRequest(pullRequests = []) {
         if (pullRequests.length) {
-            return pullRequests.find(pr => {
+            const lastPR =  pullRequests.find(pr => {
                 return semver.valid(semver.coerce(pr.title));
             });
+            return lastPR || null;
         }
         else {
             log.error('There are no pull requests to fetch version');
-            return {};
+            return null;
         }
     },
 
