@@ -44,7 +44,7 @@ module.exports = {
 
             const { inputToken } = await inquirer.prompt({
                 type: 'input',
-                name: 'token',
+                name: 'inputToken',
                 message: 'I need a Github token, with "repo" rights (check your browser) : ',
                 validate: token => /[a-z0-9]{32,48}/i.test(token),
                 filter: token => token.trim()

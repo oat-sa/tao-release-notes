@@ -4,8 +4,18 @@ A CLI tool for extracting release notes from Github repos
 
 ## Project setup
 
+From npm:
+
 ```sh
 npm install -g @oat-sa/tao-release-notes # installs globally and creates the 'taoReleaseNotes' binary
+```
+
+From Github:
+
+```sh
+git clone https://github.com/oat-sa/tao-release-notes.git
+cd tao-release-notes
+npm i && npm link # installs and creates the 'taoReleaseNotes' binary
 ```
 
 ## Prerequisites
@@ -13,6 +23,8 @@ npm install -g @oat-sa/tao-release-notes # installs globally and creates the 'ta
 - Github account
 
 The first time the tool is run, it requires a Github Personal Access Token to be manually installed. The tool will prompt you to create one by opening https://github.com/settings/tokens. This token needs `repo` rights.
+
+The token will be stored for subsequent use in `$HOME/.tao-release-notes`.
 
 ## Running the tool
 
