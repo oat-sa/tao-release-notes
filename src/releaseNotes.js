@@ -30,10 +30,11 @@ let data; // config file content
 
 
 /**
- * Ensure the unique output directory for the release notes is ready
+ * Ensure the platform-safe unique output directory for the release notes is ready
  */
 function setupOutputDir() {
-    outputDir = path.join(process.cwd(), 'release_notes', new Date().toISOString().slice(0,19));
+    const ts = new Date().toISOString().slice(0,19).replace(/:/g, '-');
+    outputDir = path.join(process.cwd(), 'release_notes', ts);
     fs.ensureDirSync(outputDir);
 }
 
