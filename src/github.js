@@ -13,11 +13,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2017-2019 Open Assessment Technologies SA;
+ * Copyright (c) 2017-2020 Open Assessment Technologies SA;
  */
 
 /**
- * This module let's you perform some actions on a Github repository
+ * This module lets you perform some actions on a Github repository
  *
  * @author Bertrand Chevrier <bertrand@taotesting.com>
  * @author Ricardo Proenca <ricardo@taotesting.com>
@@ -108,12 +108,31 @@ module.exports = function githubFactory(token, repository) {
             );
 
             return uniqIssue
+                .map(this.fixTruncatedPRTitle)
                 .map(issue => ({
                     ...issue,
-                    commit: issue && issue.commit && issue.commit.oid,
+                    commit: issue && issue.commit && issue.commit.oid
                 }))
                 .map(this.formatReleaseNote)
                 .reduce((acc, note) => note ? `${acc} - ${note}\n` : acc, '');
+        },
+
+        /**
+         * Fix a PR title ending in '…' by searching in its commits for the long title
+         * @param {Array} pullRequests
+         * @returns {Array} - with titles remapped
+         */
+        fixTruncatedPRTitle(pr) {
+            if (pr.title && pr.title.endsWith('…')) {
+                const prMatch = pr.commits.edges.find(edge => {
+                    // Github's API returns the messageHeadline as pr.title
+                    return edge.node.commit.messageHeadline === pr.title;
+                });
+                return (prMatch && prMatch.node.commit.message) ? Object.assign(pr, { title: prMatch.node.commit.message }) : pr;
+            }
+            else {
+                return pr;
+            }
         },
 
         /**

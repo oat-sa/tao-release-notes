@@ -86,27 +86,6 @@ module.exports = function requestsFactory() {
         },
 
         /**
-         * Fix a PR title ending in '…' by searching in its commits for the long title
-         * @param {Array} pullRequests
-         * @returns {Array} - with titles remapped
-         */
-        fixTruncatedPRTitles(pullRequests) {
-            return pullRequests.map(pr => {
-                if (pr.title && pr.title.endsWith('…')) {
-                    const { message } = pr.commits.nodes.find(commit => {
-                        // Github's API returns the messageHeadline as pr.title
-                        // commit.message === commit.messageHeadline + commit.messageBody
-                        return commit.messageHeadline === pr.title;
-                    });
-                    return (message) ? Object.assign(pr, { title: message }) : pr;
-                }
-                else {
-                    return pr;
-                }
-            });
-        },
-
-        /**
          * Filter full list of PRs down to those within the desired version range
          * @param {Array} pullRequests
          * @param {String} startVersion

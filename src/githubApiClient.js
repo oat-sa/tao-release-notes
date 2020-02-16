@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2019 Open Assessment Technologies SA;
+ * Copyright (c) 2019-2020 Open Assessment Technologies SA;
  */
 
 /**
@@ -23,7 +23,9 @@
  * @author Ricardo Proenca <ricardo@taotesting.com>
  */
 
-const { GraphQLClient } = require('graphql-request');
+const {
+    GraphQLClient
+} = require('graphql-request');
 
 /**
  * Creates a github api client
@@ -32,8 +34,7 @@ const { GraphQLClient } = require('graphql-request');
  */
 module.exports = function githubApiClientFactory(token) {
     const graphQLClient = new GraphQLClient(
-        'https://api.github.com/graphql',
-        {
+        'https://api.github.com/graphql', {
             headers: {
                 Authorization: `token ${token}`
             }
@@ -94,7 +95,16 @@ module.exports = function githubApiClientFactory(token) {
                             number,
                             title,
                             url,
-
+                            commits(first: 10) {
+                                edges {
+                                    node {
+                                        commit {
+                                            message,
+                                            messageHeadline
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -118,16 +128,7 @@ module.exports = function githubApiClientFactory(token) {
                     nodes {
                         ... on PullRequest {
                             number,
-                            title,
-                            commits(last: 10) {
-                                nodes {
-                                    commit {
-                                        message
-                                        messageHeadline
-                                        messageBody
-                                    }
-                                }
-                            }
+                            title
                         }
                     }
                 }
