@@ -76,4 +76,18 @@ You will be prompted to enter the start and end version of your desired release 
 
 All extracted notes will be put into a folder `release_notes/{timestamp}/`.
 
-At the end of the run, a concatenated file, `all_notes.md`, will be generated in the same location.
+At the end of the run, a concatenated file, `all_notes.csv`, will be generated in the same location.
+
+## Troubleshooting
+
+For extremely large numbers of extensions and notes it could happen that you run into rate limits on Github's API. In such cases, the tool's execution will fail at some point.
+
+A manual workaround at this stage is to split the job into 2 parts by temporarily editing the lists of extensions in your composer files.
+
+In case you have downloaded most of the notes you wanted but the rate limit has been hit before the tool's final concatenation step, a possible command to concatenate your existing files is (on *NIX systems) is:
+
+```sh
+cat *.csv > all_notes.csv
+```
+
+Happy downloading!
