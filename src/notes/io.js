@@ -119,61 +119,63 @@ module.exports = {
      * @param {Array} releaseNotes
      * @param {String} [format=csv] or md
      */
-    async writeChangeLog(repoName, outputDir, releaseNotes, format = 'csv') {
+    writeChangeLog(repoName, outputDir, releaseNotes, format = 'csv') {
         repoName = repoName.replace('/', '_');
         const suffix = `_release_notes`;
         log.doing(`Writing change log to ${repoName}${suffix}.${format}`);
 
-        const file = fs.createWriteStream(`${outputDir}/${repoName}${suffix}.${format}`);
-        file.on('error', (err) => {
+        const fileStream = fs.createWriteStream(`${outputDir}/${repoName}${suffix}.${format}`);
+
+        fileStream.on('error', (err) => {
             log.error(`Error writing file: ${err}`);
         });
-
-        if (format === 'md') {
-            this.writeToMarkdownFile(file, releaseNotes, repoName);
-        }
-        else if (format === 'csv') {
-            this.writeToCsvFile(file, releaseNotes, repoName);
-        }
-
-        file.end();
+        fileStream.on('open', () => {
+            if (format === 'md') {
+                this.writeToMarkdownFile(fileStream, releaseNotes, repoName);
+            }
+            else if (format === 'csv') {
+                this.writeToCsvFile(fileStream, releaseNotes, repoName);
+            }
+            fileStream.end();
+        });
     },
 
     /**
      * Write the release notes to a given file in Markdown format
-     * @param {Stream} file
+     * @param {Stream} fileStream - an opened file stream
      * @param {Array} releaseNotes
      * @param {String} repoName
      */
-    writeToMarkdownFile(file, releaseNotes, repoName) {
-        file.write(`# ${repoName}\n`);
+    writeToMarkdownFile(fileStream, releaseNotes, repoName) {
+        fileStream.write(`# ${repoName}\n`);
 
         releaseNotes.forEach((note) => {
             if (note && note.version && semver.valid(semver.coerce(note.version)) && note.releaseNotes) {
-                file.write(`\n## ${note.version}\n`);
-                file.write(`\n${note.releaseNotes}`);
+                fileStream.write(`\n## ${note.version}\n`);
+                fileStream.write(`\n${note.releaseNotes}`);
             }
         });
     },
 
     /**
      * Write the release notes to a given file in CSV format
-     * @param {Stream} file
+     * @param {Stream} fileStream - an opened file stream
      * @param {Array} releaseNotes
      * @param {String} repoName
      */
-    writeToCsvFile(file, releaseNotes, repoName) {
+    writeToCsvFile(fileStream, releaseNotes, repoName) {
         const removeBullet = (line) => line.replace(/^\s*-\s/, '');
         const removeCommas = (line) => line.replace(/,/g, '');
 
+        fileStream.write('repo,version,release notes\n');
+
         releaseNotes.forEach((note) => {
             if (note && note.version && semver.valid(semver.coerce(note.version)) && note.releaseNotes) {
-                file.write('repo,version,release notes\n');
                 note.releaseNotes
                     .split('\n')
                     .filter(line => line.length > 0)
                     .forEach(line => {
-                        file.write(`${repoName},${note.version},${removeCommas(removeBullet(line))}\n`);
+                        fileStream.write(`${repoName},${note.version},${removeCommas(removeBullet(line))}\n`);
                     });
             }
         });

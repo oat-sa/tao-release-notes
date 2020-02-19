@@ -146,7 +146,7 @@ async function downloadSingle(extension = '') {
 
     if (releaseNotes && releaseNotes.length) {
         setupOutputDir();
-        await io.writeChangeLog(extension, outputDir, releaseNotes);
+        io.writeChangeLog(extension, outputDir, releaseNotes);
     }
 }
 
@@ -174,7 +174,7 @@ async function downloadMultiple(file1, file2, autoVersions = false, format = 'cs
     for (let extRange of extensionRanges) {
         const releaseNotes = await extractReleaseNotesRange(extRange, autoVersions);
         if (releaseNotes && releaseNotes.length) {
-            await io.writeChangeLog(extRange.repoName, outputDir, releaseNotes, format);
+            io.writeChangeLog(extRange.repoName, outputDir, releaseNotes, format);
         }
     }
     log.done('All notes fetched.');

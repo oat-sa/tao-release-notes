@@ -22,6 +22,7 @@
  * @author Martin Nicholson <martin@taotesting.com>
  */
 
+const stream = require('stream');
 const sinon = require('sinon');
 const test = require('tape');
 const rewire = require('rewire');
@@ -34,7 +35,8 @@ const fileMock = {
     end: () => {},
     on: () => {}
 };
-const createWriteStreamMock = sandbox.stub().callsFake(() => fileMock);
+const fileStreamMock = new stream.PassThrough();
+const createWriteStreamMock = sandbox.stub().callsFake(() => fileStreamMock);
 
 io.__set__('fs', {
     createWriteStream: createWriteStreamMock
@@ -52,8 +54,8 @@ test('the module api', t => {
     t.end();
 });
 
-test('writeChangeLog function: markdown', async (t) => {
-    t.plan(7);
+test.only('writeChangeLog function: markdown', (t) => {
+    t.plan(10);
 
     const repoName = 'oat-sa/extension-tao-foobar';
     const outputDir = 'release_notes';
@@ -63,20 +65,24 @@ test('writeChangeLog function: markdown', async (t) => {
     ];
     const format = 'md';
 
-    sandbox.stub(fileMock, 'write');
-    sandbox.stub(fileMock, 'end');
+    sandbox.stub(fileStreamMock, 'write');
+    sandbox.stub(fileStreamMock, 'end');
 
-    await io.writeChangeLog(repoName, outputDir, releaseNotes, format);
+    io.writeChangeLog(repoName, outputDir, releaseNotes, format);
+    fileStreamMock.emit('open');
 
     t.equal(createWriteStreamMock.callCount, 1, 'createWriteStream has been called');
     t.equal(createWriteStreamMock.getCall(0).args[0], 'release_notes/oat-sa_extension-tao-foobar_release_notes.md', 'createWriteStream has been called with the filename');
 
-    t.equal(fileMock.write.callCount, 5, 'write has been called sufficient times');
-    t.equal(fileMock.write.getCall(0).args[0], '# oat-sa_extension-tao-foobar\n', 'writes the heading');
-    t.equal(fileMock.write.getCall(1).args[0], '\n## 1.2.3\n', 'writes the version subheading');
-    t.equal(fileMock.write.getCall(2).args[0], '\n- Fix: all bugs gone\n- Feature: blink tags everywhere\n', 'writes the notes block');
+    t.equal(fileStreamMock.write.callCount, 5, 'write has been called sufficient times');
+    t.equal(fileStreamMock.write.getCall(0).args[0], '# oat-sa_extension-tao-foobar\n', 'writes the heading');
+    t.equal(fileStreamMock.write.getCall(1).args[0], '\n## 1.2.3\n', 'writes the version subheading');
+    t.equal(fileStreamMock.write.getCall(2).args[0], '\n- Fix: all bugs gone\n- Feature: blink tags everywhere\n', 'writes notes block 1');
+    t.equal(fileStreamMock.write.getCall(3).args[0], '\n## 1.0.0\n', 'writes the version subheading');
+    t.equal(fileStreamMock.write.getCall(4).args[0], '\n- Breaking: upgrade ActionScript\n', 'writes notes block 2');
 
-    t.equal(fileMock.end.callCount, 1, 'end has been called');
+    t.equal(fileStreamMock.end.callCount, 1, 'end has been called');
+    t.ok(fileStreamMock.end.calledAfter(fileStreamMock.write), 'end was called last');
 
     createWriteStreamMock.resetHistory();
     sandbox.restore();
@@ -84,7 +90,7 @@ test('writeChangeLog function: markdown', async (t) => {
 });
 
 test('writeChangeLog function: csv', async (t) => {
-    t.plan(7);
+    t.plan(8);
 
     const repoName = 'oat-sa/extension-tao-foobar';
     const outputDir = 'release_notes';
@@ -102,10 +108,11 @@ test('writeChangeLog function: csv', async (t) => {
     t.equal(createWriteStreamMock.callCount, 1, 'createWriteStream has been called');
     t.equal(createWriteStreamMock.getCall(0).args[0], 'release_notes/oat-sa_extension-tao-foobar_release_notes.csv', 'createWriteStream has been called with the filename');
 
-    t.equal(fileMock.write.callCount, 3, 'write has been called sufficient times');
-    t.equal(fileMock.write.getCall(0).args[0], 'oat-sa_extension-tao-foobar,1.2.3,Fix: all bugs gone\n', 'writes row 1');
-    t.equal(fileMock.write.getCall(1).args[0], 'oat-sa_extension-tao-foobar,1.2.3,Feature: blink tags everywhere\n', 'writes row 2');
-    t.equal(fileMock.write.getCall(2).args[0], 'oat-sa_extension-tao-foobar,1.0.0,Breaking: upgrade ActionScript\n', 'writes row 3');
+    t.equal(fileMock.write.callCount, 4, 'write has been called sufficient times');
+    t.equal(fileMock.write.getCall(0).args[0], 'repo,version,release notes\n', 'writes header row');
+    t.equal(fileMock.write.getCall(1).args[0], 'oat-sa_extension-tao-foobar,1.2.3,Fix: all bugs gone\n', 'writes row 1');
+    t.equal(fileMock.write.getCall(2).args[0], 'oat-sa_extension-tao-foobar,1.2.3,Feature: blink tags everywhere\n', 'writes row 2');
+    t.equal(fileMock.write.getCall(3).args[0], 'oat-sa_extension-tao-foobar,1.0.0,Breaking: upgrade ActionScript\n', 'writes row 3');
 
     t.equal(fileMock.end.callCount, 1, 'end has been called');
 
