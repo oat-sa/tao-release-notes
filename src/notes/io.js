@@ -117,18 +117,35 @@ module.exports = {
      * @param {String} repoName
      * @param {String} outputDir
      * @param {Array} releaseNotes
+     * @param {String} [format=csv] or md
      */
-    async writeChangeLog(repoName, outputDir, releaseNotes) {
+    async writeChangeLog(repoName, outputDir, releaseNotes, format = 'csv') {
         repoName = repoName.replace('/', '_');
-        const suffix = '_release_notes.md';
-        log.doing(`Writing change log to ${repoName}${suffix}`);
+        const suffix = `_release_notes`;
+        log.doing(`Writing change log to ${repoName}${suffix}.${format}`);
 
-        const file = fs.createWriteStream(`${outputDir}/${repoName}${suffix}`);
+        const file = fs.createWriteStream(`${outputDir}/${repoName}${suffix}.${format}`);
         file.on('error', (err) => {
             log.error(`Error writing file: ${err}`);
         });
 
-        // Begin writing Markdown
+        if (format === 'md') {
+            this.writeToMarkdownFile(file, releaseNotes, repoName);
+        }
+        else if (format === 'csv') {
+            this.writeToCsvFile(file, releaseNotes, repoName);
+        }
+
+        file.end();
+    },
+
+    /**
+     * Write the release notes to a given file in Markdown format
+     * @param {Stream} file
+     * @param {Array} releaseNotes
+     * @param {String} repoName
+     */
+    writeToMarkdownFile(file, releaseNotes, repoName) {
         file.write(`# ${repoName}\n`);
 
         releaseNotes.forEach((note) => {
@@ -137,7 +154,29 @@ module.exports = {
                 file.write(`\n${note.releaseNotes}`);
             }
         });
-        file.end();
+    },
+
+    /**
+     * Write the release notes to a given file in CSV format
+     * @param {Stream} file
+     * @param {Array} releaseNotes
+     * @param {String} repoName
+     */
+    writeToCsvFile(file, releaseNotes, repoName) {
+        const removeBullet = (line) => line.replace(/^\s*-\s/, '');
+        const removeCommas = (line) => line.replace(/,/g, '');
+
+        releaseNotes.forEach((note) => {
+            if (note && note.version && semver.valid(semver.coerce(note.version)) && note.releaseNotes) {
+                file.write('repo,version,release notes\n');
+                note.releaseNotes
+                    .split('\n')
+                    .filter(line => line.length > 0)
+                    .forEach(line => {
+                        file.write(`${repoName},${note.version},${removeCommas(removeBullet(line))}\n`);
+                    });
+            }
+        });
     },
 
     /**

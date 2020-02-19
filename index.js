@@ -48,12 +48,16 @@ program
     .option('--c1 <file>', 'Path to composer.json for start of range')
     .option('--c2 <file>', 'Path to composer.json for end of range')
     .option('-a, --autoVersions', 'Automatically fill any missing versions instead of prompting', true)
+    .option('-f, --format <ext>', 'Save output in MD or CSV format', 'csv')
     .action(args => {
+        if (args.format !== 'md') {
+            args.format = 'csv';
+        }
         if (args.c1 && args.c2) {
-            releaseNotes.downloadMultiple(args.c1, args.c2, args.autoVersions);
+            releaseNotes.downloadMultiple(args.c1, args.c2, args.autoVersions, args.format);
         }
         else {
-            releaseNotes.downloadMultiple(null, null, args.autoVersions);
+            releaseNotes.downloadMultiple(null, null, args.autoVersions, args.format);
         }
     });
 

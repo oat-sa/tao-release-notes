@@ -30,7 +30,7 @@ const io = rewire('../../../../../src/notes/io.js');
 const sandbox = sinon.sandbox.create();
 
 const fileMock = {
-    write: val => console.log(`_${val}_`),
+    write: () => {},
     end: () => {},
     on: () => {}
 };
@@ -44,13 +44,15 @@ io.__set__('log', {
 });
 
 test('the module api', t => {
-    t.plan(2);
+    t.plan(4);
     t.ok(typeof io === 'object', 'The module exports an object');
     t.ok(typeof io.writeChangeLog === 'function', 'The io object contains a writeChangeLog function');
+    t.ok(typeof io.writeToMarkdownFile === 'function', 'The io object contains a writeToMarkdownFile function');
+    t.ok(typeof io.writeToCsvFile === 'function', 'The io object contains a writeToCsvFile function');
     t.end();
 });
 
-test('writeChangeLog function', async (t) => {
+test('writeChangeLog function: markdown', async (t) => {
     t.plan(7);
 
     const repoName = 'oat-sa/extension-tao-foobar';
@@ -59,14 +61,15 @@ test('writeChangeLog function', async (t) => {
         { version: '1.2.3', releaseNotes: '- Fix: all bugs gone\n- Feature: blink tags everywhere\n' },
         { version: '1.0.0', releaseNotes: '- Breaking: upgrade ActionScript\n' }
     ];
+    const format = 'md';
 
     sandbox.stub(fileMock, 'write');
     sandbox.stub(fileMock, 'end');
 
-    await io.writeChangeLog(repoName, outputDir, releaseNotes);
+    await io.writeChangeLog(repoName, outputDir, releaseNotes, format);
 
     t.equal(createWriteStreamMock.callCount, 1, 'createWriteStream has been called');
-    t.ok(createWriteStreamMock.calledWith('release_notes/oat-sa_extension-tao-foobar_release_notes.md'), 'createWriteStream has been called with the filename');
+    t.equal(createWriteStreamMock.getCall(0).args[0], 'release_notes/oat-sa_extension-tao-foobar_release_notes.md', 'createWriteStream has been called with the filename');
 
     t.equal(fileMock.write.callCount, 5, 'write has been called sufficient times');
     t.equal(fileMock.write.getCall(0).args[0], '# oat-sa_extension-tao-foobar\n', 'writes the heading');
@@ -75,6 +78,38 @@ test('writeChangeLog function', async (t) => {
 
     t.equal(fileMock.end.callCount, 1, 'end has been called');
 
+    createWriteStreamMock.resetHistory();
+    sandbox.restore();
+    t.end();
+});
+
+test('writeChangeLog function: csv', async (t) => {
+    t.plan(7);
+
+    const repoName = 'oat-sa/extension-tao-foobar';
+    const outputDir = 'release_notes';
+    const releaseNotes = [
+        { version: '1.2.3', releaseNotes: '- Fix: all bugs gone\n- Feature: blink, tags, everywhere\n' },
+        { version: '1.0.0', releaseNotes: '- Breaking: upgrade ActionScript\n' }
+    ];
+    const format = 'csv';
+
+    sandbox.stub(fileMock, 'write');
+    sandbox.stub(fileMock, 'end');
+
+    await io.writeChangeLog(repoName, outputDir, releaseNotes, format);
+
+    t.equal(createWriteStreamMock.callCount, 1, 'createWriteStream has been called');
+    t.equal(createWriteStreamMock.getCall(0).args[0], 'release_notes/oat-sa_extension-tao-foobar_release_notes.csv', 'createWriteStream has been called with the filename');
+
+    t.equal(fileMock.write.callCount, 3, 'write has been called sufficient times');
+    t.equal(fileMock.write.getCall(0).args[0], 'oat-sa_extension-tao-foobar,1.2.3,Fix: all bugs gone\n', 'writes row 1');
+    t.equal(fileMock.write.getCall(1).args[0], 'oat-sa_extension-tao-foobar,1.2.3,Feature: blink tags everywhere\n', 'writes row 2');
+    t.equal(fileMock.write.getCall(2).args[0], 'oat-sa_extension-tao-foobar,1.0.0,Breaking: upgrade ActionScript\n', 'writes row 3');
+
+    t.equal(fileMock.end.callCount, 1, 'end has been called');
+
+    createWriteStreamMock.resetHistory();
     sandbox.restore();
     t.end();
 });

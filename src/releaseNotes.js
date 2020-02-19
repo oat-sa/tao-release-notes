@@ -157,8 +157,9 @@ async function downloadSingle(extension = '') {
  * @param {String} [file1] - start composer.json
  * @param {String} [file2] - end composer.json
  * @param {Boolean} [autoVersions=false] - fill missing versions automatically
+ * @param {String} [format=csv] - output file format: csv|md
  */
-async function downloadMultiple(file1, file2, autoVersions = false) {
+async function downloadMultiple(file1, file2, autoVersions = false, format = 'csv') {
     data = await io.loadConfig();
 
     const { exts1, exts2 } = (file1 && file2) ?
@@ -173,11 +174,11 @@ async function downloadMultiple(file1, file2, autoVersions = false) {
     for (let extRange of extensionRanges) {
         const releaseNotes = await extractReleaseNotesRange(extRange, autoVersions);
         if (releaseNotes && releaseNotes.length) {
-            await io.writeChangeLog(extRange.repoName, outputDir, releaseNotes);
+            await io.writeChangeLog(extRange.repoName, outputDir, releaseNotes, format);
         }
     }
     log.done('All notes fetched.');
-    io.concatAllFiles(outputDir, 'all_notes.md');
+    io.concatAllFiles(outputDir, `all_notes.${format}`);
 }
 
 // Wrap program logic in messages + error handler

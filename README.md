@@ -64,12 +64,13 @@ You will be prompted to enter the start and end version of your desired release 
 
 #### Full list of CLI parameters
 
-| Short & long form         | Type | Modes available in | Description                           |
-|---------------------------|------|--------------------|---------------------------------------|
-| `--c1 <file>`             |      | `composers`        | Relative path to first composer file  |
-| `--c2 <file>`             |      | `composers`        | Relative path to second composer file |
-| `-a`, `--autoVersions`    | Flag | `composers`        | Automatically select missing versions |
-| `--extension <extension>` |      | `single`           | Repo name of an individual extension  |
+| Short & long form         | Type | Modes available in | Description                                |
+|---------------------------|------|--------------------|--------------------------------------------|
+| `--c1 <file>`             |      | `composers`        | Relative path to first composer file       |
+| `--c2 <file>`             |      | `composers`        | Relative path to second composer file      |
+| `-a`, `--autoVersions`    | Flag | `composers`        | Automatically select missing versions      |
+| `-f`, `--format <ext>`    |      | `composers`        | Generate output in `csv` (default) or `md` |
+| `--extension <extension>` |      | `single`           | Repo name of an individual extension       |
 
 ## Output
 
