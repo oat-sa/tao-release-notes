@@ -52,22 +52,7 @@ const validate = {
             throw new TypeError(errorMsg);
         }
         return this;
-    },
-
-    // /**
-    //  * Expects a valid Pull Request number (a positive integer)
-    //  * @param {String} repoId - the repository identifier
-    //  * @param {String} errorMsg - the error message
-    //  * @returns {validate} chains
-    //  * @throws {TypeError} when invalid
-    //  */
-    // prNumber(number, errorMsg = 'The given number is missing or not a valid Pull Request number') {
-    //     let numericValue = Number(number);
-    //     if(numericValue <= 0 || !Number.isInteger(numericValue)){
-    //         throw new TypeError(errorMsg);
-    //     }
-    //     return this;
-    // }
+    }
 };
 
 module.exports = validate;
