@@ -40,6 +40,7 @@
     "commander": "^2.20.3",
     "concat": "^1.0.3",
     "cross-spawn": "^6.0.3",
+    "csv-write-stream": "^2.0.0",
     "fs-extra": "^5.0.0",
     "graphql-request": "^1.8.2",
     "inquirer": "^3.3.0",

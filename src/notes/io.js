@@ -21,6 +21,7 @@ const path = require('path');
 const opn = require('opn');
 const inquirer = require('inquirer');
 const semver = require('semver');
+const csvWriter = require('csv-write-stream');
 const concat = require('concat');
 
 const config = require('../config.js')();
@@ -165,9 +166,9 @@ module.exports = {
      */
     writeToCsvFile(fileStream, releaseNotes, repoName) {
         const removeBullet = (line) => line.replace(/^\s*-\s/, '');
-        const removeCommas = (line) => line.replace(/,/g, '');
 
-        fileStream.write('repo,version,release notes\n');
+        const writer = csvWriter({ headers: ['repo', 'version', 'release notes']});
+        writer.pipe(fileStream);
 
         releaseNotes.forEach((note) => {
             if (note && note.version && semver.valid(semver.coerce(note.version)) && note.releaseNotes) {
@@ -175,10 +176,11 @@ module.exports = {
                     .split('\n')
                     .filter(line => line.length > 0)
                     .forEach(line => {
-                        fileStream.write(`${repoName},${note.version},${removeCommas(removeBullet(line))}\n`);
+                        writer.write([repoName, note.version, removeBullet(line)]);
                     });
             }
         });
+        writer.end();
     },
 
     /**
