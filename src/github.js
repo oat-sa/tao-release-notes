@@ -119,8 +119,8 @@ module.exports = function githubFactory(token, repository) {
 
         /**
          * Fix a PR title ending in '…' by searching in its commits for the long title
-         * @param {Array} pullRequests
-         * @returns {Array} - with titles remapped
+         * @param {Object} pr
+         * @returns {Object} - pr with its title remapped
          */
         fixTruncatedPRTitle(pr) {
             if (pr.title && pr.title.endsWith('…')) {

@@ -27,8 +27,8 @@ const os = require('os');
 
 /**
  * Get the config object
- * @param {String} [dir] - where the config is stored, in $HOME by default
- * @param {String} [fileName = .tao-extension-release] - the config file
+ * @param {String} [dir=$HOME] - where the config is stored, in $HOME by default
+ * @param {String} [fileName='.tao-release-notes'] - the config file
  * @returns {config} the config manager
  */
 module.exports = function configFactory(dir = os.homedir(), fileName = '.tao-release-notes'){
