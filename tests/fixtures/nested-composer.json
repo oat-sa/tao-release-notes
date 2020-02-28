@@ -1,0 +1,28 @@
+{
+  "name": "oat-sa/deploy-test-package",
+  "license": "GPL-2.0-only",
+  "require-dev": {},
+  "config": {
+    "preferred-install": "dist"
+  },
+  "support": {
+    "issues": "http://forge.taotesting.com",
+    "forum": "http://forum.taotesting.com"
+  },
+  "keywords": [
+    "sprint 121",
+    "tao",
+    "oat",
+    "computer-based-assessment"
+  ],
+  "repositories": [{
+    "type": "vcs",
+    "url": "git@github.com:oat-sa/tao-community.git"
+  }],
+  "homepage": "http://www.taotesting.com",
+  "require": {
+    "oat-sa/tao-community": "0.121.0-alpha",
+    "oat-sa/extension-tao-test-runner-plugins": "2.14.0"
+  },
+  "description": "TAO is an Open Source e-Testing platform that empowers you to build, deliver, and share innovative and engaging assessments online – in any language or subject matter."
+}
