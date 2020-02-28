@@ -1,0 +1,18 @@
+{
+  "name": "@oat-sa/tao-release-notes",
+  "version": "0.1.0",
+  "description": "Extract release notes from a TAO extension",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oat-sa/tao-release-notes.git"
+  },
+  "keywords": [
+    "release",
+    "notes"
+  ],
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/oat-sa/tao-release-notes/issues"
+  },
+  "homepage": "https://github.com/oat-sa/tao-release-notes#readme"
+}
