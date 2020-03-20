@@ -142,6 +142,17 @@ module.exports = {
     },
 
     /**
+     * Just get the Jira Id (ABC-123) out of a string
+     * @param {String} noteTitle
+     * @returns {String}
+     */
+    extractJiraId(noteTitle) {
+        const jiraIdExp = /[A-Z]{2,6}[- ]{1}[0-9]{1,6}/i;
+        const matches = noteTitle.match(jiraIdExp);
+        return matches ? matches[0] : '';
+    },
+
+    /**
      * Write the release notes to a given file in Markdown format
      * @param {Stream} fileStream - an opened file stream
      * @param {Array} releaseNotes
@@ -167,7 +178,7 @@ module.exports = {
     writeToCsvFile(fileStream, releaseNotes, repoName) {
         const removeBullet = (line) => line.replace(/^\s*-\s/, '');
 
-        const writer = csvWriter({ headers: ['repo', 'version', 'release notes']});
+        const writer = csvWriter({ headers: ['repo', 'version', 'jiraId', 'release notes']});
         writer.pipe(fileStream);
 
         releaseNotes.forEach((note) => {
@@ -176,7 +187,14 @@ module.exports = {
                     .split('\n')
                     .filter(line => line.length > 0)
                     .forEach(line => {
-                        writer.write([repoName, note.version, removeBullet(line)]);
+                        const jiraId = this.extractJiraId(line);
+                        if (jiraId.length) {
+                            line = line
+                                .replace(jiraId, '')
+                                .replace(/\//g, '');
+
+                        }
+                        writer.write([repoName, note.version, jiraId, removeBullet(line)]);
                     });
             }
         });

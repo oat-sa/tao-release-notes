@@ -148,7 +148,7 @@ module.exports = function githubFactory(token, repository) {
         formatReleaseNote(noteData) {
             const note = [];
             const typeExp = /(fix|feature|breaking)/i;
-            const jiraIdExp = /[A-Z]{2,6}[- ]{1}[0-9]{1,6}/i;
+            // const jiraIdExp = /[A-Z]{2,6}[- ]{1}[0-9]{1,6}/i;
 
             //internal extraction helper
             const extract = (string = '', exp) => {
@@ -159,7 +159,7 @@ module.exports = function githubFactory(token, repository) {
                 return false;
             };
 
-            //extract the type of change
+            //extract the type of change (fix, feature, ...)
             const extractType = () => {
                 var type;
 
@@ -189,8 +189,8 @@ module.exports = function githubFactory(token, repository) {
                     note.push(
                         noteData.title
                             .replace(typeExp, '')
-                            .replace(jiraIdExp, '')
-                            .replace(/\//g, '')
+                            // .replace(jiraIdExp, '')
+                            // .replace(/\//g, '')
                             .replace(/\s\s+/g, ' ')
                             .trim()
                     );
