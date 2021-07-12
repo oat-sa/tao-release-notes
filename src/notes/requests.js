@@ -53,15 +53,15 @@ module.exports = function requestsFactory() {
          */
         async resolveTaoCommunityComposer(version) {
             // Try to read composer.json via github tagged commit
-            log.doing(`Looking up tao-community v${version} on github`);
-            const fileUrl = `https://raw.githubusercontent.com/oat-sa/tao-community/v${version}/composer.json`;
+            log.doing(`Looking up tao-community ${version} on github`);
+            const fileUrl = `https://raw.githubusercontent.com/oat-sa/tao-community/${version}/composer.json`;
             try {
                 const response = await fetch(fileUrl);
                 const fileData = await response.json();
                 return fileData.require;
             }
             catch (err) {
-                log.error(`Could not resolve tao-community v${version}`);
+                log.error(`Could not resolve tao-community ${version}`);
                 log.error(err);
                 return {};
             }
