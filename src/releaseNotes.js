@@ -91,7 +91,8 @@ async function expandTaoCommunity(extensions = {}) {
     const community = 'oat-sa/tao-community';
 
     if (Object.keys(extensions).includes(community)) {
-        const tcVersion = extensions[community];
+	//omit leading `v` if specified
+        const tcVersion = extensions[community].replace(/^v/i, '');
         const resolvedExtensions = await requests.resolveTaoCommunityComposer(tcVersion);
         Object.assign(extensions, resolvedExtensions);
         delete extensions[community];
