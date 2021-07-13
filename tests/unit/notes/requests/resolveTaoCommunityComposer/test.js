@@ -42,7 +42,7 @@ test('the module api', t => {
 
 test('returns data from tao-community', async t => {
     t.plan(1);
-    const tcVersion = '0.121.0-alpha';
+    const tcVersion = 'v0.121.0-alpha';
     const res = await requests.resolveTaoCommunityComposer(tcVersion);
     t.deepEqual(
         res,

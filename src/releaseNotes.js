@@ -39,6 +39,18 @@ function setupOutputDir() {
 }
 
 /**
+ * @param {String} version with leading `v` or without
+ * @returns {String}
+ */
+function normalizeVersion(version) {
+    //add leading v if missing
+    if(version[0] !== 'v') {
+        return `v${version}`;
+    }
+    return version;
+}
+
+/**
  * From 2 lists of composer dependencies, build the data structure which will hold
  * the list of all extensions with their name, starting and ending version
  * @param {Object} exts1
@@ -91,11 +103,11 @@ async function expandTaoCommunity(extensions = {}) {
     const community = 'oat-sa/tao-community';
 
     if (Object.keys(extensions).includes(community)) {
-        const tcVersion = extensions[community];
+        const tcVersion = normalizeVersion(extensions[community]);
         const resolvedExtensions = await requests.resolveTaoCommunityComposer(tcVersion);
         Object.assign(extensions, resolvedExtensions);
         delete extensions[community];
-        log.done(`Retrieved ${Object.keys(resolvedExtensions).length} extension versions for tao-community v${tcVersion}.`);
+        log.done(`Retrieved ${Object.keys(resolvedExtensions).length} extension versions for tao-community ${tcVersion}.`);
     }
     return extensions;
 }
