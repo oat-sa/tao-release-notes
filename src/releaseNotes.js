@@ -43,6 +43,10 @@ function setupOutputDir() {
  * @returns {String}
  */
 function normalizeVersion(version) {
+    //Versioning started from 2022 (v2022. or 2022.)
+    if(/^[v]?\d{4}[.]/.test(version)) {
+        return version;
+    }
     //add leading v if missing
     if(version[0] !== 'v') {
         return `v${version}`;
