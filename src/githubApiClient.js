@@ -23,6 +23,7 @@
  * @author Ricardo Proenca <ricardo@taotesting.com>
  */
 
+require('cross-fetch/polyfill');
 const {
     GraphQLClient
 } = require('graphql-request');
