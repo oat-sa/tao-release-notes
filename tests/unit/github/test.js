@@ -38,21 +38,8 @@ const githubApiClientInstance = {
 };
 const githubApiClientFactory = sandbox.stub().callsFake(() => githubApiClientInstance);
 
-//load the tested module and mock octonode
+// load the tested module and mock githubApiClient
 const github = proxyquire.noCallThru().load('../../../src/github.js', {
-    octonode : {
-        client(){
-            return {
-                repo(){
-                    return {
-                        pr(data, cb){
-                            cb(null, { number : 12 });
-                        }
-                    };
-                }
-            };
-        }
-    },
     './githubApiClient': githubApiClientFactory,
 });
 
