@@ -48,10 +48,8 @@
     "inquirer": "^3.3.0",
     "minimist": "^1.2.8",
     "node-fetch": "^2.6.9",
-    "octonode": "^0.10.2",
     "opn": "^5.5.0",
     "semver": "^7.5.0",
-    "simple-git": "^3.18.0",
     "update-notifier": "^5.1.0"
   },
   "engines": {
